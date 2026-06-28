@@ -11,4 +11,4 @@ There are two files
 
 # HI-SIGMA
 
-`run_hi_sigma.ipynb` runs all pseudo-experiments for the HI-SIGMA case. It should be linked against the `HI-SIGMA` code and the [di-Higgs dataset].
+`run_hi_sigma.ipynb` runs all pseudo-experiments for the HI-SIGMA case. It should be linked against the `HI-SIGMA` code and the [di-Higgs dataset](doi.org/10.5281/zenodo.15587841).
