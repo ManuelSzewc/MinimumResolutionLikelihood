@@ -92,7 +92,7 @@ class Analysis():
         X,y = create_dataset(background_model=self.background_model,signal_model=self.signal_model,S=S,B=B,seed=seed,dim=ndim)
 
         if show_plots and ndim == 1:
-            _, bins, _ = plt.hist(X, bins=100, alpha=0.5,histtype='step', label='Full', density=True)
+            _, bins, _ = plt.hist(X, bins=np.arange(np.min(X), np.max(X), 0.1), alpha=0.5,histtype='step', label='Full', density=True)
             plt.hist(X[y==0], bins=bins, alpha=0.5,histtype='step', label='Background', density=True)
             plt.plot(0.5*(bins[1:]+bins[:-1]),self.background_model.pdf(0.5*(bins[1:]+bins[:-1])),label='Background model')
             plt.plot(0.5*(bins[1:]+bins[:-1]),self.biased_background_model.pdf(0.5*(bins[1:]+bins[:-1])),label='Biased background model')
@@ -171,7 +171,7 @@ class Analysis():
                 plt.plot(vals,bin_size*self.density(vals,m.values['mu'],m.values['Bfit'])[1],label=f'$\mu_s$={central_value_unbiased/S:.3f} +/- {error_unbiased/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
             #
             plt.legend(loc='best')
-            plt.ylabel('Events')
+            plt.ylabel('Density')
             plt.xlabel(r'$x$')
             plt.title(f'Unbiased fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')
             plt.xlim(-4,4)
@@ -182,7 +182,7 @@ class Analysis():
 
         if show_plots and ndim == 2:
 
-            yields, binsx, binsy, edges = plt.hist2d(X[:,0],X[:,1],density=density_plot,bins=[100,100],label='Data');
+            yields, binsx, binsy, edges = plt.hist2d(X[:,0],X[:,1],density=density_plot,bins=[np.arange(np.min(X[:,0]), np.max(X[:,0]), 0.1), np.arange(np.min(X[:,1]), np.max(X[:,1]), 0.1)],label='Data');
             valsx = 0.5*(binsx[1:]+binsx[:-1])
             valsy = 0.5*(binsy[1:]+binsy[:-1])
 
@@ -207,8 +207,8 @@ class Analysis():
             plt.ylabel(r'$x_2$')
             plt.xlabel(r'$x_1$')
             plt.title(f'Unbiased fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')
-            plt.xlim(0,1)
-            plt.ylim(0,1)
+            # plt.xlim(0,1)
+            # plt.ylim(0,1)
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/fit_unbiased.pdf')
 
@@ -254,7 +254,7 @@ class Analysis():
             grid_biased, profile_biased, bool_biased = m.mnprofile('mu')   
 
         if show_plots and ndim == 1:
-            yields, bins, edges = plt.hist(X,density=density_plot,histtype='step',bins=100,label='Data');
+            yields, bins, edges = plt.hist(X,density=density_plot,histtype='step',bins=bins,label='Data');
             vals = 0.5*(bins[1:]+bins[:-1])
             bin_size = bins[1]-bins[0]
             if density_plot:
@@ -263,7 +263,7 @@ class Analysis():
                 plt.plot(vals,bin_size*self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1],label=f'$\mu_s$={central_value_biased/S:.3f} +/- {error_biased/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
             # 
             plt.legend(loc='best')
-            plt.ylabel('Events')
+            plt.ylabel('Density')
             plt.xlabel(r'$x$')  
             plt.title(f'Biased fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')              
             plt.xlim(-4,4)
@@ -271,9 +271,28 @@ class Analysis():
             plt.savefig(f'{self.results_folder}/fit_biased.pdf')
             plt.show()
 
+            yields, bins, edges = plt.hist(X,density=density_plot,histtype='step',bins=bins,label='Data');
+            plt.hist(X[y==1],density=density_plot,histtype='step',bins=bins,label='Signal');
+            plt.hist(X[y==0],density=density_plot,histtype='step',bins=bins,label='Background');
+            vals = 0.5*(bins[1:]+bins[:-1])
+            bin_size = bins[1]-bins[0]
+            if density_plot:
+                plt.plot(vals,self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1]/self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[0],label=f'$\mu_s$={central_value_biased/S:.3f} +/- {error_biased/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
+            else:
+                plt.plot(vals,bin_size*self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1],label=f'$\mu_s$={central_value_biased/S:.3f} +/- {error_biased/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
+            # 
+            plt.legend(loc='best')
+            plt.ylabel('Density')
+            plt.xlabel(r'$x$')  
+            plt.title(f'Biased fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')              
+            plt.xlim(-4,4)
+            plt.tight_layout()
+            # plt.savefig(f'{self.results_folder}/fit_biased.pdf')
+            plt.show()            
+
         if show_plots and ndim == 2:
 
-            yields, binsx, binsy, edges = plt.hist2d(X[:,0],X[:,1],density=density_plot,bins=[100,100],label='Data');
+            yields, binsx, binsy, edges = plt.hist2d(X[:,0],X[:,1],density=density_plot,bins=[np.arange(np.min(X[:,0]), np.max(X[:,0]), 0.1), np.arange(np.min(X[:,1]), np.max(X[:,1]), 0.1)],label='Data');
             valsx = 0.5*(binsx[1:]+binsx[:-1])
             valsy = 0.5*(binsy[1:]+binsy[:-1])
 
@@ -285,22 +304,17 @@ class Analysis():
             for i in range(len(valsy)):
                 for j in range(len(valsx)):
                     val = np.array([valsx[j],valsy[i]]).reshape(-1,1)
-                    # print(i,j,val,density(val,m.values['mu'],m.values['Bfit']))
                     if density_plot:
                         Z[i,j] = (self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1]/self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[0])
                     else:
                         Z[i,j] = (bin_size_x*bin_size_y* self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1])
 
             plt.contour(valsx,valsy,Z,levels=10,cmap='plasma')
-            # plt.colorbar()
-            # plt.legend(loc='best')
             plt.text(0.05, 0.95, f'$\mu_s$={central_value_biased/S:.3f} +/- {error_biased/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}', transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             plt.ylabel(r'$x_2$')
             plt.xlabel(r'$x_1$')
 
             plt.title(f'Biased fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')
-            plt.xlim(0,1)
-            plt.ylim(0,1)
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/fit_biased.pdf')
 
@@ -315,8 +329,6 @@ class Analysis():
         cuts = [np.quantile(likelihoods_toy,i/npoints) for i in range(npoints+1)]    
 
         fractions_toy, bins_toy = np.histogram(likelihoods_toy,bins=cuts,density=False)
-        # print(fractions_toy.shape,likelihoods_toy.shape)
-        # print(np.sum(fractions_toy),len(likelihoods_toy))
         fractions_toy=fractions_toy/np.sum(fractions_toy)
         fractions, bins = np.histogram(likelihoods_cr,bins=cuts,density=False)
         fractions=fractions/np.sum(fractions)
@@ -324,10 +336,11 @@ class Analysis():
         vals = 0.5*(bins[1:]+bins[:-1])
 
 
-        accumulated_fractions_toy = np.array([np.sum(fractions_toy[:i+1]) for i in range(len(fractions_toy))])
-        accumulated_fractions = np.array([np.sum(fractions[:i+1]) for i in range(len(fractions_toy))])
+        accumulated_fractions_toy = np.array([np.sum(fractions_toy[i:]) for i in range(len(fractions_toy))])
+        accumulated_fractions = np.array([np.sum(fractions[i:]) for i in range(len(fractions_toy))])
+        maxvalue = np.max(np.abs(accumulated_fractions_toy-accumulated_fractions))
 
-        if np.max(np.abs(accumulated_fractions_toy-accumulated_fractions)) > eps:
+        if maxvalue > eps:
             Lmin = vals[np.argmax(np.abs(accumulated_fractions_toy-accumulated_fractions))]
         else:
             Lmin = 0.0
@@ -338,11 +351,10 @@ class Analysis():
         if show_plots:
             plt.hist(likelihoods_toy,bins=cuts, histtype='step', density=False,alpha=0.5, label='Toys')
             plt.hist(likelihoods_cr, bins=cuts, histtype='step', density=False,alpha=0.5, label='Calibration Data')
-            # plt.ylim()
             plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
             plt.yscale('log')
             plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
-            plt.ylabel('Events')
+            plt.ylabel('Density')
             plt.legend()
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/prob_calibration_events.pdf')
@@ -350,7 +362,6 @@ class Analysis():
 
             plt.hist(likelihoods_toy,bins=cuts, histtype='step', density=True,alpha=0.5, label='Toys')
             plt.hist(likelihoods_cr, bins=cuts, histtype='step', density=True,alpha=0.5, label='Calibration Data')
-            # plt.ylim()
             plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
             plt.yscale('log')
             plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
@@ -359,49 +370,37 @@ class Analysis():
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/prob_calibration.pdf')
             plt.show()            
-            # print(np.std(XToy[yToy==0],ddof=1))
-            # print(Lmin,neff)
-            # # other_Lmin = np.exp(-(1**2)/2)/(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1))#
-            # # print('Other Lmin:',other_Lmin,np.sqrt(2*np.abs(np.log(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1)*other_Lmin))))
-            # plt.scatter(vals,fractions_toy,label='Toy')        
-            # plt.scatter(vals,fractions,label='True')        
-            # plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
-            # # plt.axhline(np.max((accumulated_fractions_toy-accumulated_fractions)))#,label=r'$\mathcal{L}_{\text{min}}$')
-            # plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
-            # # plt.ylabel(r'|Data-Toy| Accumulated fraction')
-            # plt.ylabel(r'Hypersurface fraction of events')
-            # plt.legend(loc='best')
-            # plt.tight_layout()
-            # plt.savefig(f'{self.results_folder}/distribution_comparison.pdf')
-
             plt.show() 
 
         if show_plots:
-            # print(np.std(XToy[yToy==0],ddof=1))
             print(Lmin,neff)
-            # other_Lmin = np.exp(-(1**2)/2)/(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1))#
-            # print('Other Lmin:',other_Lmin,np.sqrt(2*np.abs(np.log(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1)*other_Lmin))))
-            plt.scatter(vals,(accumulated_fractions_toy-accumulated_fractions))        
+            plt.scatter(vals,(accumulated_fractions_toy-accumulated_fractions))       
             plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
-            plt.axhline(np.max((accumulated_fractions_toy-accumulated_fractions)))#,label=r'$\mathcal{L}_{\text{min}}$')
+            plt.axhline(maxvalue)#,label=r'$\mathcal{L}_{\text{min}}$')
             plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
-            # plt.ylabel(r'|Data-Toy| Accumulated fraction')
             plt.ylabel(r'$f(\mathcal{L}_{\text{c}}|\theta_{\text{b}}) - f(\mathcal{L}_{\text{c}}|\text{true b})$')
             plt.legend(loc='best')
             plt.tight_layout()
-            # plt.savefig(f'{self.results_folder}/distribution_comparison.pdf')
 
             plt.show()
+
+            plt.scatter(vals,(accumulated_fractions_toy),label='Toy') 
+            plt.scatter(vals,(accumulated_fractions),label='True')      
+            plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
+            plt.axhline(maxvalue)#,label=r'$\mathcal{L}_{\text{min}}$')
+            plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
+            plt.ylabel(r'$f(\mathcal{L}_{\text{c}})$')
+            plt.legend(loc='best')
+            plt.tight_layout()
+
+            plt.show()
+
         if show_plots:
-            # print(np.std(XToy[yToy==0],ddof=1))
             print(Lmin,neff)
-            # other_Lmin = np.exp(-(1**2)/2)/(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1))#
-            # print('Other Lmin:',other_Lmin,np.sqrt(2*np.abs(np.log(np.sqrt(2*np.pi)*np.std(XToy[yToy==0],ddof=1)*other_Lmin))))
             plt.scatter(vals,np.abs(accumulated_fractions_toy-accumulated_fractions))        
             plt.axvline(Lmin,label=r'$\mathcal{L}_{\text{min}}$')
-            plt.axhline(np.max(np.abs(accumulated_fractions_toy-accumulated_fractions)))#,label=r'$\mathcal{L}_{\text{min}}$')
+            plt.axhline(maxvalue)#,label=r'$\mathcal{L}_{\text{min}}$')
             plt.xlabel(r'$\mathcal{L}_{\text{c}}$')
-            # plt.ylabel(r'|Data-Toy| Accumulated fraction')
             plt.ylabel(r'$|f(\mathcal{L}_{\text{c}}|\theta_{\text{b}}) - f(\mathcal{L}_{\text{c}}|\text{true b})|$')
             plt.legend(loc='best')
             plt.tight_layout()
@@ -419,8 +418,6 @@ class Analysis():
             c = cost.ExtendedUnbinnedNLL(X[likelihoods>Lmin].T, self.density_bias_with_cut)
 
         m = Minuit(c, mu=1, Bfit=B,eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)
-        #m.limits["mu"] = (0, None)
-        ### I could add penalty terms here
         m.fixed["eff_bkg"] = True
         m.fixed["eff_sig"] = True
         m.fixed["eff_cr"] = True
@@ -448,7 +445,7 @@ class Analysis():
 
         if show_plots and ndim == 1:
             print(Lmin,eff_bkg,eff_cr,eff_sig)
-            yields, bins, edges = plt.hist(X[likelihoods>Lmin],density=density_plot,histtype='step',bins=100,label='Data');
+            yields, bins, edges = plt.hist(X[likelihoods>Lmin],density=density_plot,histtype='step',bins=np.arange(np.min(X[likelihoods>Lmin]), np.max(X[likelihoods>Lmin]), 0.1),label='Data');
             vals = 0.5*(bins[1:]+bins[:-1])
             bin_size = bins[1]-bins[0]            
             if density_plot:
@@ -456,7 +453,7 @@ class Analysis():
             else:
                 plt.plot(vals,bin_size*self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1],label=f'$\mu_s$={central_value_biased_corrected/S:.3f} +/- {error_biased_corrected/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
             plt.legend(loc='best')
-            plt.ylabel('Events')
+            plt.ylabel('Density')
             plt.xlabel(r'$x$')
             plt.title(f'Biased + MRL fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')                        
             plt.xlim(-4,4)
@@ -464,9 +461,26 @@ class Analysis():
             plt.savefig(f'{self.results_folder}/fit_biased_corrected.pdf')
             plt.show()    
 
+            yields, bins, edges = plt.hist(X[likelihoods>Lmin],density=density_plot,histtype='step',bins=np.arange(np.min(X[likelihoods>Lmin]), np.max(X[likelihoods>Lmin]), 0.1),label='Data');
+            plt.hist(X[(likelihoods>Lmin) & (y==1)],density=density_plot,histtype='step',bins=np.arange(np.min(X[likelihoods>Lmin]), np.max(X[likelihoods>Lmin]), 0.1),label='Signal');
+            plt.hist(X[(likelihoods>Lmin) & (y==0)],density=density_plot,histtype='step',bins=np.arange(np.min(X[likelihoods>Lmin]), np.max(X[likelihoods>Lmin]), 0.1),label='Background');
+            vals = 0.5*(bins[1:]+bins[:-1])
+            bin_size = bins[1]-bins[0]            
+            if density_plot:
+                plt.plot(vals,self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1]/self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[0],label=f'$\mu_s$={central_value_biased_corrected/S:.3f} +/- {error_biased_corrected/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
+            else:
+                plt.plot(vals,bin_size*self.density_bias_with_cut(vals,mu=m.values['mu'], Bfit=m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1],label=f'$\mu_s$={central_value_biased_corrected/S:.3f} +/- {error_biased_corrected/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}')
+            plt.legend(loc='best')
+            plt.ylabel('Density')
+            plt.xlabel(r'$x$')
+            plt.title(f'Biased + MRL fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')                        
+            plt.xlim(-4,4)
+            plt.tight_layout()
+            plt.show()                
+
         if show_plots and ndim == 2:
 
-            yields, binsx, binsy, edges = plt.hist2d(X[likelihoods>Lmin][:,0],X[likelihoods>Lmin][:,1],density=density_plot,bins=[100,100],label='Data');
+            yields, binsx, binsy, edges = plt.hist2d(X[likelihoods>Lmin][:,0],X[likelihoods>Lmin][:,1],density=density_plot,bins=[np.arange(np.min(X[likelihoods>Lmin][:,0]), np.max(X[likelihoods>Lmin][:,0]), 0.1), np.arange(np.min(X[likelihoods>Lmin][:,1]), np.max(X[likelihoods>Lmin][:,1]), 0.1)],label='Data');
             valsx = 0.5*(binsx[1:]+binsx[:-1])
             valsy = 0.5*(binsy[1:]+binsy[:-1])
 
@@ -478,30 +492,22 @@ class Analysis():
             for i in range(len(valsy)):
                 for j in range(len(valsx)):
                     val = np.array([valsx[j],valsy[i]]).reshape(-1,1)
-                    # print(i,j,val,density(val,m.values['mu'],m.values['Bfit']))
                     if density_plot:
                         Z[i,j] = (self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1]/self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[0])
                     else:
                         Z[i,j] = (bin_size_x*bin_size_y* self.density_bias_with_cut(val,m.values['mu'],m.values['Bfit'],eff_bkg=eff_bkg, eff_sig=eff_sig, eff_cr=eff_cr)[1])
 
             plt.contour(valsx,valsy,Z,levels=10,label=f'$\mu_s$={central_value_biased_corrected/S:.3f} +/- {error_biased_corrected/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}',cmap='plasma')
-            # plt.colorbar()
-            # plt.legend(loc='best')
             plt.text(0.05, 0.95, f'$\mu_s$={central_value_biased_corrected/S:.3f} +/- {error_biased_corrected/S:.3f}\n $\mu_b$={Bfit_val/B:.3f} +/- {Bfit_error/B:.3f}', transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             plt.ylabel(r'$x_2$')
             plt.xlabel(r'$x_1$')
             plt.title(f'Biased + MRL fit, $\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')
-            plt.xlim(0,1)
-            plt.ylim(0,1)
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/fit_biased_corrected.pdf')
 
             plt.show()   
 
         if show_plots:
-            # print(grid_unbiased/S, 2*(profile_unbiased-np.min(profile_unbiased)))
-            # print(grid_biased/S, 2*(profile_biased-np.min(profile_biased)))
-            # print(grid_biased_corrected/S, 2*(profile_biased-np.min(profile_biased)))
             plt.plot(grid_unbiased/S, (profile_unbiased-np.min(profile_unbiased)),color='darkred',label='Unbiased')
             plt.plot(grid_biased/S, (profile_biased-np.min(profile_biased)),color='mediumblue',label='Biased')
             plt.plot(grid_biased_corrected/S, (profile_biased_corrected-np.min(profile_biased_corrected)),color='darkgreen',label='Biased + MRL')
@@ -511,15 +517,7 @@ class Analysis():
             plt.legend(loc="upper center")
             plt.title(f'$\lambda_b ={round(B)}$, $\lambda_s={round(S)}$')
             plt.ylim([0, 4])
-            plt.axhline(1.0,color='red')
-            # plt.axvline(central_value_unbiased/S-error_unbiased/S,color='darkred',linestyle='dashed')
-            # plt.axvline(central_value_unbiased/S+error_unbiased/S,color='darkred',linestyle='dashed')
-
-            # plt.axvline(central_value_biased/S-error_biased/S,color='mediumblue',linestyle='dashed')
-            # plt.axvline(central_value_biased/S+error_biased/S,color='mediumblue',linestyle='dashed')
-            
-            # plt.axvline(central_value_biased_corrected/S-error_biased_corrected/S,color='darkgreen',linestyle='dashed')
-            # plt.axvline(central_value_biased_corrected/S+error_biased_corrected/S,color='darkgreen',linestyle='dashed')                        
+            plt.axhline(1.0,color='red')                        
             plt.tight_layout()
             plt.savefig(f'{self.results_folder}/profile_likelihood.pdf')
             plt.show()
