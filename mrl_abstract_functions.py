@@ -129,8 +129,8 @@ class Analysis():
             plt.title('Background Distribution')
             plt.colorbar()
             plt.show()
-        XCR,yCR = create_dataset(background_model=self.background_model,signal_model=self.signal_model,S=0,B=CRsize,seed=seed,dim=ndim)
-        XToy,yToy = create_dataset(background_model=self.biased_background_model,signal_model=self.signal_model,S=Toysize,B=Toysize,seed=seed,dim=ndim)
+        XCR,yCR = create_dataset(background_model=self.background_model,signal_model=self.signal_model,S=0,B=CRsize,seed=seed+1,dim=ndim)
+        XToy,yToy = create_dataset(background_model=self.biased_background_model,signal_model=self.signal_model,S=Toysize,B=Toysize,seed=seed+2,dim=ndim)
 
         # print(X.shape,y.shape,XCR.shape,yCR.shape,XToy.shape,yToy.shape)
         if ndim == 1:
